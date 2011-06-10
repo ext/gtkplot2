@@ -5,6 +5,13 @@
 
 #define SAMPLES 100
 
+enum {
+  TOP = 0,
+  RIGHT,
+  BOTTOM,
+  LEFT
+};
+
 struct sample {
   float x;
   float y;
@@ -103,13 +110,13 @@ static void paint(const GtkPlot2* plot){
   cairo_paint(cr);
 
   /* constants */
-  const int width  = graph->width  - graph->margin[1] - graph->margin[3];
-  const int height = graph->height - graph->margin[0] - graph->margin[2];
+  const int width  = graph->width  - graph->margin[RIGHT] - graph->margin[LEFT];
+  const int height = graph->height - graph->margin[TOP]   - graph->margin[BOTTOM];
 
   /* background */
   cairo_set_source_rgba(cr, 1, 1, 1, 1);
   cairo_rectangle(cr,
-		  graph->margin[3], graph->margin[0],
+		  graph->margin[LEFT], graph->margin[TOP],
 		  width, height);
   cairo_fill(cr);
 
@@ -131,11 +138,11 @@ static void paint(const GtkPlot2* plot){
   const float s = ((float)height) / d;
 
   /* lines */
-  const int offset_y = graph->margin[0];
+  const int offset_y = graph->margin[TOP];
   const float dx = ((float)width) / (SAMPLES-1);
   int c = graph->read;
   cairo_set_source_rgba(cr, 0,0,0,1);
-  cairo_move_to(cr, graph->margin[3], calc_y(graph->samples[c].y, s, min, height) + offset_y);
+  cairo_move_to(cr, graph->margin[LEFT], calc_y(graph->samples[c].y, s, min, height) + offset_y);
   for ( int i = 1; i < SAMPLES; i++ ){
     int j = (c+i);
     if ( j >= SAMPLES ){
@@ -144,7 +151,7 @@ static void paint(const GtkPlot2* plot){
 
     const float x = i * dx;
     const float y = calc_y(graph->samples[j].y, s, min, height);
-    cairo_line_to(cr, x + graph->margin[3], y + offset_y);
+    cairo_line_to(cr, x + graph->margin[LEFT], y + offset_y);
   }
   cairo_stroke (cr);
 
@@ -156,11 +163,11 @@ static void paint(const GtkPlot2* plot){
   cairo_set_font_size (cr, 10.0);
 
   snprintf(buf, 64, "%04.2f", max);
-  cairo_move_to (cr, 5, graph->margin[0] + 10);
+  cairo_move_to (cr, 5, graph->margin[TOP] + 10);
   cairo_show_text (cr, buf);
 
   snprintf(buf, 64, "%04.2f", min);
-  cairo_move_to (cr, 5, height - graph->margin[2]+10);
+  cairo_move_to (cr, 5, height - graph->margin[BOTTOM] + 10);
   cairo_show_text (cr, buf);
 
   cairo_destroy(cr);
@@ -210,10 +217,10 @@ static void class_init(GtkPlot2Class* cls){
 }
 
 void graph_init(struct Graph* graph){
-  graph->margin[0] = 5;
-  graph->margin[1] = 5;
-  graph->margin[2] = 5;
-  graph->margin[3] = 50;
+  graph->margin[TOP]    = 5;
+  graph->margin[RIGHT]  = 5;
+  graph->margin[BOTTOM] = 5;
+  graph->margin[LEFT]   = 50;
   sprintf(graph->title,   "%256s", "Sample plot");
   sprintf(graph->label_x, "%256s", "rendering time (µs)");
   sprintf(graph->label_y, "%256s", "time");

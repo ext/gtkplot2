@@ -10,7 +10,7 @@ void graph_get_minmax(const Graph* graph, float* min, float* max){
   *min = graph->samples[0].y;
   *max = graph->samples[0].y;
 
-  for ( int i = 1; i < SAMPLES; i++ ){
+  for ( int i = 1; i < SAMPLES_HAVE; i++ ){
     if ( graph->samples[i].y < *min ){
       *min = graph->samples[i].y;
     }
@@ -23,8 +23,8 @@ void graph_get_minmax(const Graph* graph, float* min, float* max){
 void graph_sample_add(struct Graph* graph, float x, float y){
   graph->samples[graph->write].x = x;
   graph->samples[graph->write].y = y;
-  graph->write = (graph->write + 1 ) % SAMPLES;
-  graph->read = (graph->read + 1 ) % SAMPLES;
+  graph->write = (graph->write + 1 ) % SAMPLES_HAVE;
+  graph->read = (graph->read + 1 ) % SAMPLES_HAVE;
 }
 
 static double calc_y(float value, float scale, float min, float height){
@@ -52,14 +52,14 @@ void graph_render(const Graph* graph, cairo_t* cr, float min, float max, unsigne
 
   /* actual graph */
   const int offset_y = graph->margin[TOP];
-  const float dx = ((float)width) / (SAMPLES-1);
+  const float dx = ((float)width) / (SAMPLES_SHOW-1);
   int c = graph->read;
   cairo_set_source_rgba(cr, 0,0,0,1);
   cairo_move_to(cr, graph->margin[LEFT], calc_y(graph->samples[c].y, s, min, height) + offset_y);
-  for ( int i = 1; i < SAMPLES; i++ ){
+  for ( int i = 1; i < SAMPLES_SHOW; i++ ){
     int j = (c+i);
-    if ( j >= SAMPLES ){
-      j -= SAMPLES;
+    if ( j >= SAMPLES_HAVE ){
+      j -= SAMPLES_HAVE;
     }
 
     const float x = i * dx;

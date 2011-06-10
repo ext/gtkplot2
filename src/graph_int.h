@@ -1,4 +1,5 @@
-#define SAMPLES 100
+#define SAMPLES_HAVE 200
+#define SAMPLES_SHOW 100
 
 enum {
   TOP = 0,
@@ -24,5 +25,5 @@ struct Graph {
 
   unsigned int read;
   unsigned int write;
-  struct sample samples[SAMPLES];
+  struct sample samples[SAMPLES_HAVE];
 };

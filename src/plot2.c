@@ -130,6 +130,8 @@ static void class_init(GtkPlot2Class* cls){
 }
 
 void graph_init(struct Graph* graph){
+  graph->write = SAMPLES_HAVE - SAMPLES_SHOW;
+  graph->read = 0;
   graph->margin[TOP]    = 5;
   graph->margin[RIGHT]  = 5;
   graph->margin[BOTTOM] = 5;

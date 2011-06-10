@@ -3,36 +3,8 @@
 #endif /* HAVE_CONFIG_H */
 
 #include "gtkplot2/graph.h"
+#include "graph_int.h"
 #include <stdio.h>
-
-#define SAMPLES 100
-
-enum {
-  TOP = 0,
-  RIGHT,
-  BOTTOM,
-  LEFT
-};
-
-struct sample {
-  float x;
-  float y;
-};
-
-struct Graph {
-  int width;
-  int height;
-  int margin[4]; /* top right bottom left */
-  char title[256];
-  char label_x[256];
-  char label_y[256];
-
-  int rendertime;
-
-  unsigned int read;
-  unsigned int write;
-  struct sample samples[SAMPLES];
-};
 
 void graph_get_minmax(const Graph* graph, float* min, float* max){
   *min = graph->samples[0].y;

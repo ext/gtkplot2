@@ -99,8 +99,6 @@ static void paint(const GtkPlot2* plot){
 
   cr = gdk_cairo_create(widget->window);
 
-  cairo_translate(cr, 0, 7);
-
   cairo_set_source_rgba(cr, 0, 0, 0, 0);
   cairo_paint(cr);
 
@@ -214,7 +212,7 @@ static void class_init(GtkPlot2Class* cls){
 void graph_init(struct Graph* graph){
   graph->margin[0] = 5;
   graph->margin[1] = 5;
-  graph->margin[2] = 10;
+  graph->margin[2] = 5;
   graph->margin[3] = 50;
   sprintf(graph->title,   "%256s", "Sample plot");
   sprintf(graph->label_x, "%256s", "rendering time (µs)");

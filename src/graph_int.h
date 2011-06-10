@@ -23,7 +23,6 @@ struct Graph {
 
   int rendertime;
 
-  unsigned int read;
   unsigned int write;
   struct sample samples[SAMPLES_HAVE];
 };

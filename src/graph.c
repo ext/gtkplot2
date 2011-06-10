@@ -26,29 +26,55 @@ void graph_sample_add(struct Graph* graph, float x, float y){
   graph->samples[graph->write].y = y;
 }
 
-static double calc_y(float value, float scale, float min, float height){
+static double scale_y(float value, float scale, float min, float height){
   return height - (value-min) * scale;
 }
 
 static void render_series(const Graph* graph, cairo_t* cr, float scale, float min, float max){
   cairo_save(cr);
+  cairo_set_source_rgba(cr, 0,0,0,1);
 
+  /* constants */
   const int width  = graph->width  - graph->margin[RIGHT] - graph->margin[LEFT];
   const int height = graph->height - graph->margin[TOP]   - graph->margin[BOTTOM];
-
   const int offset_y = graph->margin[TOP];
   const float dx = ((float)width) / (SAMPLES_SHOW-1);
-  int c = graph->write;
-  cairo_set_source_rgba(cr, 0,0,0,1);
-  cairo_move_to(cr, width + graph->margin[LEFT], calc_y(graph->samples[c].y, scale, min, height) + offset_y);
-  for ( int i = 1; i < SAMPLES_SHOW; i++ ){
-    int j = (c-i);
-    if ( j < 0 ){
-      j += SAMPLES_HAVE;
+
+  int c = graph->write; /* position of current sample */
+  float xref = graph->samples[c].x; /* x-value of (previous) sample */
+  float x = width; /* current position (in graph) */
+  int n = 1; /* sample counter */
+
+  /* move to position of latest sample */
+  cairo_move_to(cr, width + graph->margin[LEFT], scale_y(graph->samples[c].y, scale, min, height) + offset_y);
+
+  /* Render as many samples as possible, until it runs out of screen-space or 
+   * there is no more samples left. Rendering is done backwards, starting at the
+   * latest sample. */
+  while ( x > 0.0f ){
+
+    /* position of sample in circular array */
+    int i = c - n++;
+    if ( i < 0 ){
+      i += SAMPLES_HAVE;
     }
 
-    const float x = width - i * dx;
-    const float y = calc_y(graph->samples[j].y, scale, min, height);
+    /* detect if counter wrapped (to few samples) */
+    if ( i == graph->write ){
+      break;
+    }
+
+    /* current sample value */
+    const float ox = graph->samples[i].x;
+    const float oy = graph->samples[i].y;
+
+    /* calculate the new position */
+    x -= (xref - ox) * dx;
+    x = x > 0.0f ? x : 0.0f; /** @bug This clipping will alter the angle of the line, must calculate what the new y-value will be */
+    xref = ox; /* store reference */
+    const float y = scale_y(oy, scale, min, height); /* scaled y-position */
+
+    /* render line */
     cairo_line_to(cr, x + graph->margin[LEFT], y + offset_y);
   }
   cairo_stroke (cr);

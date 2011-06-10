@@ -40,7 +40,7 @@ int main(int argc, char* argv[]){
   gtk_box_pack_start(GTK_BOX(vbox), plot, TRUE, TRUE, 0);
   gtk_widget_show_all(win);
  
-  g_timeout_add(25, (GSourceFunc)update, plot);
+  g_timeout_add(5, (GSourceFunc)update, plot);
  
   gtk_main();
 }

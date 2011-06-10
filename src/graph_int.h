@@ -1,5 +1,5 @@
-#define SAMPLES_HAVE 200
-#define SAMPLES_SHOW 100
+#define SAMPLES_HAVE 500
+#define SAMPLES_SHOW 300
 
 enum {
   TOP = 0,

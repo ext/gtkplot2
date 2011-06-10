@@ -8,11 +8,16 @@ static gboolean update(GtkPlot2* plot) {
 
 static gboolean expose(GtkPlot2* plot) {
   static int n = 0;
+  static float v = 0.0f;
   Graph* graph = gtk_plot2_get_graph(GTK_PLOT2(plot));
 
-  float value = gtk_plot2_rendertime(plot);
-  printf("t: %.1f\n", value);
-  graph_sample_add(graph, n++, value);
+  //float value = gtk_plot2_rendertime(plot);
+  float value = sin(v * 150) * 25 + sin(v * 75) * 25 + sin(v * 2)* 150;
+
+  graph_sample_add(graph, n, value);
+
+  n++;
+  v += 0.003;
   return TRUE;
 }
 

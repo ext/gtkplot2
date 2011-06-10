@@ -8,8 +8,10 @@ static gboolean update(GtkPlot2* plot) {
 
 static gboolean expose(GtkPlot2* plot) {
   static int n = 0;
+  Graph* graph = gtk_plot2_get_graph(GTK_PLOT2(plot));
+
   printf("t: %d\n", gtk_plot2_rendertime(plot));
-  gtk_plot2_sample_add(plot, n++, gtk_plot2_rendertime(plot));
+  graph_sample_add(graph, n++, gtk_plot2_rendertime(plot));
   return TRUE;
 }
 

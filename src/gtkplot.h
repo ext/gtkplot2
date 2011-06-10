@@ -1,6 +1,8 @@
 #ifndef GTK_PLOT2_H
 #define GTK_PLOT2_H
 
+#include <gtkplot2/graph.h>
+
 #include <gdk/gdk.h>
 #include <gtk/gtkwidget.h>
  
@@ -19,8 +21,7 @@ struct _GtkPlot2Class {
 
 GtkType gtk_plot2_get_type();
 GtkWidget* gtk_plot2_new();
-void gtk_plot2_sample_clear(GtkPlot2* plot);
-void gtk_plot2_sample_add(GtkPlot2* plot, float x, float y);
+Graph* gtk_plot2_get_graph(GtkPlot2* plot);
 int gtk_plot2_rendertime(GtkPlot2* plot);
 
 G_END_DECLS

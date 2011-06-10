@@ -10,9 +10,7 @@ struct sample {
   float y;
 };
 
-struct _GtkPlot2 {
-  GtkWidget widget;
-
+struct Graph {
   int width;
   int height;
   int margin[4]; /* top right bottom left */
@@ -25,6 +23,11 @@ struct _GtkPlot2 {
   unsigned int read;
   unsigned int write;
   struct sample samples[SAMPLES];
+};
+
+struct _GtkPlot2 {
+  GtkWidget widget;
+  struct Graph graph;
 };
 
 static void size_request(GtkWidget* widget, GtkRequisition* requisition){
@@ -43,8 +46,8 @@ static void size_allocate(GtkWidget* widget, GtkAllocation* allocation){
   
   widget->allocation = *allocation;
 
-  GTK_PLOT2(widget)->width = allocation->width;
-  GTK_PLOT2(widget)->height = allocation->height;
+  GTK_PLOT2(widget)->graph.width = allocation->width;
+  GTK_PLOT2(widget)->graph.height = allocation->height;
   
   if (GTK_WIDGET_REALIZED(widget)) {
     gdk_window_move_resize(widget->window,
@@ -89,8 +92,9 @@ static double calc_y(float value, float scale, float min, float height){
   return height - (value-min) * scale;
 }
 
-static void paint(GtkPlot2* plot){
-  GtkWidget* widget = GTK_WIDGET(plot);
+static void paint(const GtkPlot2* plot){
+  const GtkWidget* widget = GTK_WIDGET(plot);
+  const struct Graph* graph = &plot->graph;
   cairo_t *cr;
 
   cr = gdk_cairo_create(widget->window);
@@ -101,24 +105,24 @@ static void paint(GtkPlot2* plot){
   cairo_paint(cr);
 
   /* constants */
-  const int width = plot->width - plot->margin[1] - plot->margin[3];
-  const int height = plot->height - plot->margin[0] - plot->margin[2];
+  const int width  = graph->width  - graph->margin[1] - graph->margin[3];
+  const int height = graph->height - graph->margin[0] - graph->margin[2];
 
   /* background */
   cairo_set_source_rgba(cr, 1, 1, 1, 1);
   cairo_rectangle(cr,
-		  plot->margin[3], plot->margin[0],
+		  graph->margin[3], graph->margin[0],
 		  width, height);
   cairo_fill(cr);
 
   /* get scale */
-  float min = plot->samples[0].y, max = plot->samples[0].y;
+  float min = graph->samples[0].y, max = graph->samples[0].y;
   for ( int i = 1; i < SAMPLES; i++ ){
-    if ( plot->samples[i].y < min ){
-      min = plot->samples[i].y;
+    if ( graph->samples[i].y < min ){
+      min = graph->samples[i].y;
     }
-    if ( plot->samples[i].y > max ){
-      max = plot->samples[i].y;
+    if ( graph->samples[i].y > max ){
+      max = graph->samples[i].y;
     }
   }
 
@@ -129,11 +133,11 @@ static void paint(GtkPlot2* plot){
   const float s = ((float)height) / d;
 
   /* lines */
-  const int offset_y = plot->margin[0];
+  const int offset_y = graph->margin[0];
   const float dx = ((float)width) / (SAMPLES-1);
-  int c = plot->read;
+  int c = graph->read;
   cairo_set_source_rgba(cr, 0,0,0,1);
-  cairo_move_to(cr, plot->margin[3], calc_y(plot->samples[c].y, s, min, height) + offset_y);
+  cairo_move_to(cr, graph->margin[3], calc_y(graph->samples[c].y, s, min, height) + offset_y);
   for ( int i = 1; i < SAMPLES; i++ ){
     int j = (c+i);
     if ( j >= SAMPLES ){
@@ -141,8 +145,8 @@ static void paint(GtkPlot2* plot){
     }
 
     const float x = i * dx;
-    const float y = calc_y(plot->samples[j].y, s, min, height);
-    cairo_line_to(cr, x + plot->margin[3], y + offset_y);
+    const float y = calc_y(graph->samples[j].y, s, min, height);
+    cairo_line_to(cr, x + graph->margin[3], y + offset_y);
   }
   cairo_stroke (cr);
 
@@ -154,11 +158,11 @@ static void paint(GtkPlot2* plot){
   cairo_set_font_size (cr, 10.0);
 
   snprintf(buf, 64, "%04.2f", max);
-  cairo_move_to (cr, 5, plot->margin[0] + 10);
+  cairo_move_to (cr, 5, graph->margin[0] + 10);
   cairo_show_text (cr, buf);
 
   snprintf(buf, 64, "%04.2f", min);
-  cairo_move_to (cr, 5, height - plot->margin[2]+10);
+  cairo_move_to (cr, 5, height - graph->margin[2]+10);
   cairo_show_text (cr, buf);
 
   cairo_destroy(cr);
@@ -175,7 +179,7 @@ static gboolean expose(GtkWidget* widget, GdkEventExpose* event){
   paint(GTK_PLOT2(widget));
 
   gettimeofday(&b, NULL);
-  GTK_PLOT2(widget)->rendertime = (b.tv_sec-a.tv_sec) * 1000000 + (b.tv_usec-a.tv_usec);
+  GTK_PLOT2(widget)->graph.rendertime = (b.tv_sec-a.tv_sec) * 1000000 + (b.tv_usec-a.tv_usec);
 
   return FALSE;
 }
@@ -207,16 +211,18 @@ static void class_init(GtkPlot2Class* cls){
   object_class->destroy = destroy;
 }
 
-static void init(GtkPlot2* plot){
-  plot->margin[0] = 5;
-  plot->margin[1] = 5;
-  plot->margin[2] = 10;
-  plot->margin[3] = 50;
-  sprintf(plot->title,   "%256s", "Sample plot");
-  sprintf(plot->label_x, "%256s", "rendering time (µs)");
-  sprintf(plot->label_y, "%256s", "time");
+void graph_init(struct Graph* graph){
+  graph->margin[0] = 5;
+  graph->margin[1] = 5;
+  graph->margin[2] = 10;
+  graph->margin[3] = 50;
+  sprintf(graph->title,   "%256s", "Sample plot");
+  sprintf(graph->label_x, "%256s", "rendering time (µs)");
+  sprintf(graph->label_y, "%256s", "time");
+}
 
-  //gtk_signal_connect(GTK_OBJECT(plot), "size-allocate", size_allocate, plot);
+static void init(GtkPlot2* plot){
+  graph_init(&plot->graph);
 }
 
 GtkType gtk_plot2_get_type(){
@@ -243,14 +249,18 @@ GtkWidget* gtk_plot2_new(void){
   return GTK_WIDGET(gtk_type_new(gtk_plot2_get_type()));
 }
 
+void graph_sample_add(struct Graph* graph, float x, float y){
+  graph->samples[graph->write].x = x;
+  graph->samples[graph->write].y = y;
+  graph->write = (graph->write + 1 ) % SAMPLES;
+  graph->read = (graph->read + 1 ) % SAMPLES;
+}
+
 void gtk_plot2_sample_clear(GtkPlot2* plot);
 void gtk_plot2_sample_add(GtkPlot2* plot, float x, float y){
-  plot->samples[plot->write].x = x;
-  plot->samples[plot->write].y = y;
-  plot->write = (plot->write + 1 ) % SAMPLES;
-  plot->read = (plot->read + 1 ) % SAMPLES;
+  graph_sample_add(&plot->graph, x, y);
 }
 
 int gtk_plot2_rendertime(GtkPlot2* plot){
-  return plot->rendertime;
+  return plot->graph.rendertime;
 }

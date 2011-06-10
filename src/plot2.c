@@ -92,7 +92,7 @@ static gboolean expose(GtkWidget* widget, GdkEventExpose* event){
       max += d > 0 ? 250.0 - d : -d;
     }
 
-    graph_render(graph, cr, min, max, 0);
+    graph_render(graph, cr, min, max, 3);
     cairo_destroy(cr);
   }
 

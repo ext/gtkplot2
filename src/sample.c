@@ -1,5 +1,6 @@
 #include "gtkplot.h"
 #include "gtk/gtk.h"
+#include <math.h>
 
 static gboolean update(GtkPlot2* plot) {
   gtk_widget_queue_draw(GTK_WIDGET(plot));

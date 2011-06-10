@@ -110,8 +110,15 @@ static gboolean expose(GtkWidget* widget, GdkEventExpose* event){
 
     float min, max;
     graph_get_minmax(graph, &min, &max);
-    min -= fmodf(min, 250.0f);
-    max += 250.0f - fmodf(max, 250.0f);
+
+    {
+      float d = fmodf(min, 250.0f);
+      min -= d > 0 ? d : 250.0f + d;
+    }
+    {
+      float d = fmodf(max, 250.0f);
+      max += d > 0 ? 250.0 - d : -d;
+    }
 
     graph_render(graph, cr, min, max, 0);
     cairo_destroy(cr);

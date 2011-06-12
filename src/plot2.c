@@ -135,9 +135,9 @@ void graph_init(struct Graph* graph){
   graph->margin[RIGHT]  = 5;
   graph->margin[BOTTOM] = 5;
   graph->margin[LEFT]   = 50;
-  sprintf(graph->title,   "%256s", "Sample plot");
-  sprintf(graph->label_x, "%256s", "rendering time (µs)");
-  sprintf(graph->label_y, "%256s", "time");
+  snprintf(graph->title,   256, "%s", "Sample plot");
+  snprintf(graph->label_x, 256, "%s", "rendering time (µs)");
+  snprintf(graph->label_y, 256, "%s", "time");
 }
 
 static void init(GtkPlot2* plot){

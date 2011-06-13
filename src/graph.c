@@ -82,6 +82,25 @@ static void render_series(const Graph* graph, cairo_t* cr, float scale, float mi
   cairo_restore(cr);
 }
 
+static void render_lines_x(const Graph* graph, cairo_t* cr, unsigned int lines, float min, float max){
+  cairo_save(cr);
+
+  /* constants */
+  const int width  = graph->width  - graph->margin[RIGHT] - graph->margin[LEFT];
+  const int height = graph->height - graph->margin[TOP]   - graph->margin[BOTTOM];
+
+  cairo_set_line_width(cr, 0.5);
+  cairo_set_source_rgba(cr, 0.5, 0.5, 0.8, 1.0);
+  float dy = (float)height / (lines+1);
+  for ( unsigned int i = 1; i <= lines; i++ ){
+    cairo_move_to(cr, graph->margin[LEFT]        , graph->margin[TOP] + i * dy);
+    cairo_line_to(cr, graph->margin[LEFT] + width, graph->margin[TOP] + i * dy);
+    cairo_stroke(cr);
+  }
+
+  cairo_restore(cr);
+}
+
 static void render_scale(const Graph* graph, cairo_t* cr, unsigned int lines, float min, float max){
   cairo_save(cr);
   cairo_set_source_rgba(cr, 0, 0, 0, 1);
@@ -127,18 +146,7 @@ void graph_render(const Graph* graph, cairo_t* cr, float min, float max, unsigne
   const float scale = ((float)height) / delta;
 
   /* help lines */
-  cairo_save(cr);
-  {
-    cairo_set_line_width(cr, 0.5);
-    cairo_set_source_rgba(cr, 0.5, 0.5, 0.8, 1.0);
-    float dy = (float)height / (lines+1);
-    for ( unsigned int i = 1; i <= lines; i++ ){
-      cairo_move_to(cr, graph->margin[LEFT]        , graph->margin[TOP] + i * dy);
-      cairo_line_to(cr, graph->margin[LEFT] + width, graph->margin[TOP] + i * dy);
-      cairo_stroke(cr);
-    }
-  }
-  cairo_restore(cr);
+  render_lines_x(graph, cr, lines, min, max);
 
   /* actual graph */
   render_series(graph, cr, scale, min, max);

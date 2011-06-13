@@ -5,6 +5,7 @@
 #include "gtkplot2/graph.h"
 #include "graph_int.h"
 #include <stdio.h>
+#include <math.h>
 
 void graph_get_minmax(const Graph* graph, float* min, float* max){
   *min = graph->samples[0].y;
@@ -91,11 +92,48 @@ static void render_lines_x(const Graph* graph, cairo_t* cr, unsigned int lines, 
 
   cairo_set_line_width(cr, 0.5);
   cairo_set_source_rgba(cr, 0.5, 0.5, 0.8, 1.0);
-  float dy = (float)height / (lines+1);
+  const float dy = (float)height / (lines+1);
   for ( unsigned int i = 1; i <= lines; i++ ){
     cairo_move_to(cr, graph->margin[LEFT]        , graph->margin[TOP] + i * dy);
     cairo_line_to(cr, graph->margin[LEFT] + width, graph->margin[TOP] + i * dy);
     cairo_stroke(cr);
+  }
+
+  cairo_restore(cr);
+}
+
+/**
+ * Render vertical lines.
+ * @param tick Distance between lines.
+ * @param major How often major lines should occur.
+ */
+static void render_lines_y(const Graph* graph, cairo_t* cr, float tick, unsigned int major){
+  cairo_save(cr);
+  cairo_set_line_width(cr, 0.5);
+  cairo_set_source_rgba(cr, 0.5, 0.5, 0.8, 1.0);
+
+  /* constants */
+  const int width  = graph->width  - graph->margin[RIGHT] - graph->margin[LEFT];
+  const int height = graph->height - graph->margin[TOP]   - graph->margin[BOTTOM];
+  const float dx = ((float)width) / (SAMPLES_SHOW-1);
+
+  const int c = graph->write; /* position of current sample */
+  const float xref = graph->samples[c].x; /* x-value of (previous) sample */
+  float x = width - fmod(xref, tick) * dx; /* current position (in graph) */
+  unsigned int n = floor(xref / tick);
+
+  while ( x >= 0.0 ){
+    if ( n-- % major == 0 ){
+      cairo_set_line_width(cr, 1.5);
+    } else {
+      cairo_set_line_width(cr, 0.5);
+    }
+
+    cairo_move_to(cr, graph->margin[LEFT] + x, graph->margin[TOP]);
+    cairo_line_to(cr, graph->margin[LEFT] + x, graph->margin[TOP] + height);
+    cairo_stroke(cr);
+
+    x -= tick * dx;
   }
 
   cairo_restore(cr);
@@ -147,6 +185,7 @@ void graph_render(const Graph* graph, cairo_t* cr, float min, float max, unsigne
 
   /* help lines */
   render_lines_x(graph, cr, lines, min, max);
+  render_lines_y(graph, cr, 25.0f, 4);
 
   /* actual graph */
   render_series(graph, cr, scale, min, max);

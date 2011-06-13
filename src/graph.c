@@ -82,6 +82,31 @@ static void render_series(const Graph* graph, cairo_t* cr, float scale, float mi
   cairo_restore(cr);
 }
 
+static void render_scale(const Graph* graph, cairo_t* cr, unsigned int lines, float min, float max){
+  cairo_save(cr);
+  cairo_set_source_rgba(cr, 0, 0, 0, 1);
+
+  /* constants */
+  const int height = graph->height - graph->margin[TOP]   - graph->margin[BOTTOM];
+  const float delta = max - min;
+
+  char buf[64];
+  cairo_select_font_face (cr, "Sans",
+			  CAIRO_FONT_SLANT_NORMAL,
+			  CAIRO_FONT_WEIGHT_NORMAL);
+  cairo_set_font_size (cr, 10.0);
+    
+  float dy = (float)(height-10) / (lines+1);
+  for ( unsigned int i = 0; i <= lines+1; i++ ){
+    float s = 1.0 - (float)i / (lines+1);
+    snprintf(buf, 64, "%9.2f", min + delta * s);
+    cairo_move_to (cr, 5, graph->margin[TOP] + 10 + i * dy);
+    cairo_show_text (cr, buf);
+  }
+
+  cairo_restore(cr);
+}
+
 void graph_render(const Graph* graph, cairo_t* cr, float min, float max, unsigned int lines){
   cairo_set_source_rgba(cr, 0, 0, 0, 0);
   cairo_paint(cr);
@@ -119,21 +144,5 @@ void graph_render(const Graph* graph, cairo_t* cr, float min, float max, unsigne
   render_series(graph, cr, scale, min, max);
 
   /* scales */
-  cairo_save(cr);
-  {
-    char buf[64];
-    cairo_select_font_face (cr, "Sans",
-			    CAIRO_FONT_SLANT_NORMAL,
-			    CAIRO_FONT_WEIGHT_NORMAL);
-    cairo_set_font_size (cr, 10.0);
-    
-    float dy = (float)(height-10) / (lines+1);
-    for ( unsigned int i = 0; i <= lines+1; i++ ){
-      float s = 1.0 - (float)i / (lines+1);
-      snprintf(buf, 64, "%9.2f", min + delta * s);
-      cairo_move_to (cr, 5, graph->margin[TOP] + 10 + i * dy);
-      cairo_show_text (cr, buf);
-    }
-  }
-  cairo_restore(cr);
+  render_scale(graph, cr, lines, min, max);
 }

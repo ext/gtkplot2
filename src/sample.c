@@ -24,8 +24,8 @@ static gboolean expose(GtkPlot2* plot) {
 
   Graph* graph = gtk_plot2_get_graph(GTK_PLOT2(plot));
 
-  float value = gtk_plot2_rendertime(plot);
-  //float value = sin(v * 150) * 25 + sin(v * 75) * 25 + sin(v * 2)* 150;
+  //float value = gtk_plot2_rendertime(plot);
+  float value = sin(v * 150) * 25 + sin(v * 75) * 25 + sin(v * 2)* 150;
 
   graph_sample_add(graph, n, value);
 

@@ -13,6 +13,24 @@ struct sample {
   float y;
 };
 
+struct context {
+  float width;
+  float height;
+  
+  float x_min;
+  float x_max;
+  float x_delta;
+  float x_scale;
+  float y_min;
+  float y_max;
+  float y_delta;
+  float y_scale;
+  
+  float tick;
+  unsigned int lines;
+  unsigned int major;
+};
+
 struct Graph {
   int width;
   int height;

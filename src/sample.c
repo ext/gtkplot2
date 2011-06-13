@@ -3,13 +3,18 @@
 #include <math.h>
 
 static gint active = 0;
+static gint queue = 0;
 
 static gboolean update(GtkPlot2* plot) {
   if ( !active ){
     return FALSE;
   }
 
-  gtk_widget_queue_draw(GTK_WIDGET(plot));
+  if ( !queue ){
+    gtk_widget_queue_draw(GTK_WIDGET(plot));
+    queue = 1;
+  }
+
   return TRUE;
 }
 
@@ -19,13 +24,14 @@ static gboolean expose(GtkPlot2* plot) {
 
   Graph* graph = gtk_plot2_get_graph(GTK_PLOT2(plot));
 
-  //float value = gtk_plot2_rendertime(plot);
-  float value = sin(v * 150) * 25 + sin(v * 75) * 25 + sin(v * 2)* 150;
+  float value = gtk_plot2_rendertime(plot);
+  //float value = sin(v * 150) * 25 + sin(v * 75) * 25 + sin(v * 2)* 150;
 
   graph_sample_add(graph, n, value);
 
   n++;
   v += 0.003;
+  queue = 0;
   return TRUE;
 }
 
@@ -53,7 +59,7 @@ int main(int argc, char* argv[]){
   gtk_widget_show_all(win);
  
   active = 1;
-  g_timeout_add(5, (GSourceFunc)update, plot);
+  g_timeout_add(10, (GSourceFunc)update, plot);
  
   gtk_main();
 }
